@@ -65,24 +65,43 @@ class Design:
     def discover(self, current_dir=None):
         if current_dir is None:
             current_dir = self.directory_name
+    
         try:
             for entry in os.listdir(current_dir):
                 full_path = os.path.join(current_dir, entry)
+    
+                # Programın oluşturduğu klasörleri tekrar tarama
+                if (
+                    os.path.isdir(full_path)
+                    and os.path.abspath(current_dir) == os.path.abspath(self.directory_name)
+                    and entry.startswith(f"{self.file_name}_")
+                ):
+                    continue
+    
                 self.console.print(f"[green]Scanning: {full_path}[/green]")
-
+    
                 if os.path.isfile(full_path):
                     name, ext = os.path.splitext(entry)
+    
                     if ext.lower() in self.file_extensions:
                         dest_dir = self.create_directory(
-                            os.path.join(self.directory_name, f"{self.file_name}_{ext.lstrip('.')}"))
+                            os.path.join(
+                                self.directory_name,
+                                f"{self.file_name}_{ext.lstrip('.')}"
+                            )
+                        )
+    
                         dest_path = os.path.join(dest_dir, entry)
                         self.move_file(full_path, dest_path)
+    
                     else:
-                        self.console.print(f"[yellow]Unknown extension: {ext}[/yellow]")
-
+                        self.console.print(
+                            f"[yellow]Unknown extension: {ext or 'No extension'}[/yellow]"
+                        )
+    
                 elif os.path.isdir(full_path):
                     self.discover(full_path)
-
+    
         except Exception as e:
             self.console.print(f"[red]Discovery Error: {e}[/red]")
 
